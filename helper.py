@@ -53,8 +53,7 @@ all_districts = df["USER_District_Name"].unique().tolist()
 district_data_dict = {}
 
 # sanity check - we should have around 1,207 school districts in Texas (source: Texas Edu Agency)
-print("We should have a little over 1200 school districts; we found {}\n".format(len(all_districts)))
-
+chosen_districts_output_file.write("\n\nWe should have a little over 1200 school districts; We found {}\n\n".format(len(all_districts)))
 
 """
     uses df row to aggregate attributes from google sheet into the dict
@@ -101,12 +100,17 @@ median = int((num_schools[mid] + num_schools[~mid]) / 2)
 min = num_schools[0]
 max = num_schools[-1]
 
-print("***Based on Num Schools Per District***")
-print("Average: {}".format(avg))
-print("Minimum: {}".format(min))
-print("Maximum: {}".format(max))
-print("Median: {}".format(median))
-print("***************************************\n")
+chosen_districts_output_file.write("***Number of Schools Per District***\n")
+chosen_districts_output_file.write("Average: {}\n".format(avg))
+chosen_districts_output_file.write("Minimum: {}\n".format(min))
+chosen_districts_output_file.write("Maximum: {}\n".format(max))
+chosen_districts_output_file.write("Median: {}\n".format(median))
+chosen_districts_output_file.write("************************************\n\n")
+
+chosen_districts_output_file.write("Small Cohort: 0 to {}\n".format(bounds[0]))
+chosen_districts_output_file.write("Medium Cohort: {} to {}\n".format(bounds[0], bounds[1]))
+chosen_districts_output_file.write("Large Cohort: {}+\n\n".format(bounds[1]))
+chosen_districts_output_file.write("************************************\n\n")
 
 small_cohort_population = 0
 medium_cohort_population = 0
@@ -119,13 +123,14 @@ for num in num_schools:
     else:
         large_cohort_population += 1
 
-print("Small_Cohort_Population: {} \t Medium_Cohort_Population: {} \t Large_Cohort_Population: {}".format(small_cohort_population, medium_cohort_population, large_cohort_population))
+chosen_districts_output_file.write("Small_Cohort_Population: {} \t Medium_Cohort_Population: {} \t Large_Cohort_Population: {}\n".format(small_cohort_population, medium_cohort_population, large_cohort_population))
 
 total = small_cohort_population + medium_cohort_population + large_cohort_population
 sample_size_small = small_cohort_population * sample_size // total
 sample_size_medium = round(medium_cohort_population / total * sample_size)
 sample_size_large = round(large_cohort_population / total * sample_size)
-print("Small_Cohort_Sample_Size: {} \t Medium_Cohort_Sample_Size: {} \t Large_Cohort_Sample_Size: {}".format(sample_size_small, sample_size_medium, sample_size_large))
+chosen_districts_output_file.write("Small_Cohort_Sample_Size: {} \t Medium_Cohort_Sample_Size: {} \t Large_Cohort_Sample_Size: {}\n\n".format(sample_size_small, sample_size_medium, sample_size_large))
+chosen_districts_output_file.write("************************************\n\n")
 
 """
 Next steps
@@ -146,79 +151,21 @@ for district in district_data_dict.keys():
     else:
         large_cohort.append(district)
 
-print("\nSelecting Districts for Small Cohort...")
-chosen_districts_output_file.write("*****Small Cohort*****\n")
+chosen_districts_output_file.write("************Small Cohort************\n")
 for small_cohort_district in range(sample_size_small):
     index = random.randint(0, small_cohort_population)
     chosen_districts_output_file.write(small_cohort[index] + "\n")
 
 
-print("Selecting Districts for Medium Cohort...")
-chosen_districts_output_file.write("\n*****Medium Cohort*****\n")
+chosen_districts_output_file.write("\n\n************Medium Cohort***********\n")
 for medium_cohort_district in range(sample_size_medium):
     index = random.randint(0, medium_cohort_population)
     chosen_districts_output_file.write(medium_cohort[index] + "\n")
 
 
-print("Selecting Districts for Large Cohort...")
-chosen_districts_output_file.write("\n*****Large Cohort*****\n")
+chosen_districts_output_file.write("\n\n************Large Cohort************\n")
 for large_cohort_district in range(sample_size_large):
     index = random.randint(0, large_cohort_population)
     chosen_districts_output_file.write(large_cohort[index] + "\n")
 
 chosen_districts_output_file.close()
-"""
-    This will use the above dict and the city-population sheet to add a population attribute to the dict
-    
-    dict = {
-                schoolDistrict1: {
-                    cities: [city1, city2],
-                    population: <INT>
-                }
-            }
-"""
-
-# Code for above
-"""
-
-
-sheet = 1
-df = pd.read_excel(io=file_name, sheet_name=sheet)
-
-# used for debugging
-for index, row in df.iterrows():
-    city = row["Geography"]
-    if str(city) == "nan":
-        continue
-    print(str(city).lower())
-
-for district in district_data_dict.keys():
-    print(district)
-    associated_cities = district_data_dict[district]["City"]
-    missing_cities = associated_cities
-    print("******* {}: {} *******".format(district, " ".join(associated_cities)))
-    for associated_city in associated_cities:
-        for index, row in df.iterrows():
-            city = row["Geography"]
-
-            # Skip rows with missing data
-            if str(city) == "nan":
-                continue
-
-            if str(associated_city).lower() in str(city).lower():
-                try:
-                    missing_cities.remove(associated_city)
-                except:
-                    print("tried removing something that doesn't exist")
-                city_pop = int(str(row["Best Population Estimate"]).replace(",",""))
-                #print(associated_city, city, city_pop)
-
-    try:
-        if len(missing_cities) > 0:
-            print("\nMissing Cities: {}\n\n\n".format(' '.join(missing_cities)))
-    except:
-        print("something weird happened for {}".format(district))
-"""
-
-
-
